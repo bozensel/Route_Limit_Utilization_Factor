@@ -7,14 +7,13 @@ TTP and Netmiko used to create this repo..
 
 Sample config: 
 
-===============================================================================
 BGP Neighbor
-===============================================================================
--------------------------------------------------------------------------------
+
+
 Peer                 : 1.1.1.1
 Description          : (Not Specified)
 Group                : test
--------------------------------------------------------------------------------
+
 Peer AS              : 0                Peer Port            : 0    
 Peer Address         : 1.1.1.1
 Local AS             : 15000            Local Port           : 0    
@@ -67,17 +66,17 @@ SRPLCY-IPV4 active   : 0                SRPLCY-IPV6 active   : 0
 SRPLCY-IPV4 suppress*: 0                SRPLCY-IPV6 suppress*: 0    
 SRPLCY-IPV4 rejected : 0                SRPLCY-IPV6 rejected : 0    
 
-===============================================================================
+
 Prefix Limits Per Address Family
-===============================================================================
+
 Family         Limit          Idle Timeout   Threshold Log Only  Post Import
--------------------------------------------------------------------------------
+
 ipv4           1000000000     forever        90        Disabled  Disabled
 evpn           10000000       forever        90        Disabled  Disabled
-===============================================================================
+
 * indicates that the corresponding row element may have been truncated.
--------------------------------------------------------------------------------
+
 Neighbors shown : 1
-===============================================================================
+
 * indicates that the corresponding row element may have been truncated.
 

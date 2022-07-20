@@ -8,59 +8,80 @@ import json
 import time
 from multiprocessing.dummy import Pool as ThreadPool
 from netmiko import Netmiko
-
 #******************************************
 
-with open("user_pass.txt", "r") as f5:
-        user_pass = f5.readlines()
+with open("username_password.txt", "r") as a5:
+        username_password = a5.readlines()
 
-for list_user_pass in user_pass:
-        if "username" in list_user_pass:
-                username = list_user_pass.split(":")[1].strip()
-        if "password" in list_user_pass:
-                password = list_user_pass.split(":")[1].strip()
+for list_username_password in username_password:
+        if "username" in list_username_password:
+                username = list_username_password.split(":")[1].strip()
+        if "password" in list_username_password:
+                password = list_username_password.split(":")[1].strip()
 
 def ssh(nodeip):
         try:
-                huawei = {
-                        'device_type': 'huawei', 'ip': nodeip, 'username':
+                nokia = {
+                        'device_type': 'nokia', 'ip': nodeip, 'username':
                         username, 'password': password, }
-                con = Netmiko(**huawei)
+                con = Netmiko(**nokia)
                 print(nodeip.strip() + "  " + "successful login")
         except Exception as e:
                 print(e)
-                f_3.write(nodeip.strip() + "\n")
+                n_1.write(nodeip.strip() + "\n")
                 return
 
+
 #******************************************
-        
-        data_to_parse_0 = con.send_command_timing('display ip vpn-instance | ignore-case i Customer_A') 
+        con.send_command_timing('environment no more')
+        data_to_parse_1 = con.send_command_timing('show service service-using') 
 
-        print(data_to_parse_0)
+        print(data_to_parse_1)
 
-        ttp_template_0 ="""
-  {{Customer_Name}}                             {{nodeip}}     {{IPV4}}
+        ttp_template_1 = """
+<group name="VPRN_ID">
+{{serviceID}}           {{service_Type}}      {{ignore}}   {{ignore}}   {{ignore}}          {{ignore}}
+</group>
 """
-        parser_0 = ttp(data=data_to_parse_0, template=ttp_template_0)
-        parser_0.parse()
 
-        #print result in JSON format
-        results_0 = parser_0.result(format='json')[0]
-        print(results_0)
+parser_1 = ttp(data=data_to_parse_1, template=ttp_template_1)
+parser_1.parse()
 
-        #str to list **convert with json.loads
-        result_0 = json.loads(results_0)
-        print(result_0[0]["Customer_Name"])
+# print result in JSON format
+results1 = parser_1.result(format='json')[0]
+#print(results)
+
+#converting str to json. 
+result1 = json.loads(results1)
+
+vprn_id = []
+
+for i in result1[0]['VPRN_ID']:# Created a list (vprn_id) which only includes vprn ids. 
+    if i['service_Type'] == 'VPRN':
+        vprn_id.append(i['serviceID'])
+
+# print(vprn_id) 
 
         #******************************************
-        data_to_parse = con.send_command_timing("display current-configuration configuration vpn-instance  {}".format(result_0[0]["Customer_Name"]))
+	for j in vprn_id:
+        data_to_parse = con.send_command_timing("show router {} bgp neighbor 172.16.24.2 detail".format(j))
         print(data_to_parse)
 
-        ttp_template ="""
-  {{routing-table}} limit {{ total_number | DIGIT }} {{total_number2}}
-
+ttp_template = """
+<group name="Active_Prefixes">
+IPv4 active          : {{ipv4|DIGIT}}             IPv6 active          : {{ipv6|DIGIT}}
+VPN-IPv4 active      : {{vpn-ipv4|DIGIT}}            VPN-IPv6 active      : {{vpn-ipv6|DIGIT}}  
+Label-IPv4 active    : {{label-ipv4|DIGIT}}                Label_IPv6 active    : {{label-ipv6|DIGIT}}    
+MVPN-IPv4 active     : {{mvpn-ipv4|DIGIT}}                MVPN-IPv6 active     : {{mvpn-ipv6|DIGIT}}    
+Mcast-IPv4 active    : {{mcast-ipv4|DIGIT}}                Mcast-IPv6 active    : {{mcast-ipv6|DIGIT}}    
+L2-VPN active        : {{l2-vpn|DIGIT}}                EVPN active          : {{evpn|DIGIT}}
+</group>
+<group name="Prefix_Limit">
+{{family}}           {{prefix_limit|DIGIT}}     {{ignore}}        {{ignore|DIGIT}}        {{ignore}}  {{ignore}}
+</group>
 """
-        parser = ttp(data=data_to_parse, template=ttp_template)
+
+parser = ttp(data=data_to_parse, template=ttp_template)
         parser.parse()
 
         #print result in JSON format
@@ -73,41 +94,52 @@ def ssh(nodeip):
 
 #******************************************
 
-        data_to_parse_2 = con.send_command_timing('dis ip routing-table vpn-instance' + " " + result_0[0]["Customer_Name"] + " " + " statistics | i Summary Prefixes")
-
-        print(data_to_parse_2)
-
-        ttp_template_2 ="""
-Summary Prefixes : {{ used_number | DIGIT }}
-"""
-
-        parser2 = ttp(data=data_to_parse_2, template=ttp_template_2)
-        parser2.parse()
-
-        #print result in JSON format
-        results2 = parser2.result(format='json')[0]
-        print(results2)
-
-        #str to list **convert with json.loads
-        result2 = json.loads(results2)
-        print(result2[0]["used_number"])
-
-#******************************************
-
-        result3 = (int(result2[0]["used_number"]) / int(result[0]["total_number"])) * 100
+        result3 = int(result[0]['Active_Prefixes']['ipv4'])/int(result[0]['Prefix_Limit'][0]['prefix_limit'])*100
         print(int(result3))
 
-        with open("vrf_limit_result.txt", "a") as f:
+        with open("vprn_limit_result.txt", "a") as f:
                 f.write("Customer_Result" +"_" + nodeip +"==>" + str(result3)+ "\n")
                 f.close()
 
 #******************************************
 
-f_2 = open("ip_list.txt", "r")
-ip_list = f_2.readlines()
-f_2.close()
-f_3 = open("Ssh_unconnected_2.txt", "w")
+n_2 = open("ip_list.txt", "r")
+ip_list = n_2.readlines()
+n_2.close()
+n_1 = open("Ssh_unconnected_2.txt", "w")
 
 # Therading method
 myPool = ThreadPool(100)
 result = myPool.map(ssh, ip_list)
+
+#**********************************************
+#Sample json output after the data is parsed:
+
+“””
+[
+    {
+        "Active_Prefixes": {  
+            "evpn": "0",      
+            "ipv4": "9999",   
+            "ipv6": "6643432",
+            "l2-vpn": "0",    
+            "mcast-ipv4": "0",
+            "mcast-ipv6": "0",
+            "mvpn-ipv4": "0",
+            "mvpn-ipv6": "0",
+            "vpn-ipv4": "45223",
+            "vpn-ipv6": "5674363"
+        },
+        "Prefix_Limit": [
+            {
+                "family": "ipv4",
+                "prefix_limit": "1000000000"
+            },
+            {
+                "family": "evpn",
+                "prefix_limit": "10000000"
+            }
+        ]
+    }
+]
+“””

@@ -74,9 +74,4 @@ Family         Limit          Idle Timeout   Threshold Log Only  Post Import
 ipv4           1000000000     forever        90        Disabled  Disabled
 evpn           10000000       forever        90        Disabled  Disabled
 
-* indicates that the corresponding row element may have been truncated.
-
 Neighbors shown : 1
-
-* indicates that the corresponding row element may have been truncated.
-

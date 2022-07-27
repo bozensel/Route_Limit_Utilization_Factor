@@ -8,7 +8,7 @@ import json
 import time
 from multiprocessing.dummy import Pool as ThreadPool
 from netmiko import Netmiko
-#******************************************
+############################################
 
 with open("username_password.txt", "r") as a5:
         username_password = a5.readlines()
@@ -32,7 +32,8 @@ def ssh(nodeip):
                 return
 
 
-#******************************************
+###################################
+
         con.send_command_timing('environment no more')
         data_to_parse_1 = con.send_command_timing('show service service-using') 
 
@@ -62,7 +63,8 @@ for i in result1[0]['VPRN_ID']:# Created a list (vprn_id) which only includes vp
 
 # print(vprn_id) 
 
-        #******************************************
+        ###################################
+
 	for j in vprn_id:
         data_to_parse = con.send_command_timing("show router {} bgp neighbor 172.16.24.2 detail".format(j))
         print(data_to_parse)
@@ -92,7 +94,7 @@ parser = ttp(data=data_to_parse, template=ttp_template)
         result = json.loads(results)
         print(result)
 
-#******************************************
+###################################
 
         result3 = int(result[0]['Active_Prefixes']['ipv4'])/int(result[0]['Prefix_Limit'][0]['prefix_limit'])*100
         print(int(result3))
@@ -101,7 +103,7 @@ parser = ttp(data=data_to_parse, template=ttp_template)
                 f.write("Customer_Result" +"_" + nodeip +"==>" + str(result3)+ "\n")
                 f.close()
 
-#******************************************
+###################################
 
 n_2 = open("ip_list.txt", "r")
 ip_list = n_2.readlines()
@@ -112,7 +114,7 @@ n_1 = open("Ssh_unconnected_2.txt", "w")
 myPool = ThreadPool(100)
 result = myPool.map(ssh, ip_list)
 
-#**********************************************
+###################################
 #Sample json output after the data is parsed:
 
 “””
